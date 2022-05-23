@@ -1,0 +1,8 @@
+$y = [a, b, c]
+subst $x in [a, b, c] by $x or e:
+    a or m and d
+end
+or
+subst a by b:
+    a or c
+end

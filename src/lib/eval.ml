@@ -751,6 +751,184 @@ and eval_ast_formula (env : env) (ast : Ast.t) : Ast.t =
       | _, content' -> raise_type_error ast content content' " 'prop-set'")
   | NewlineBefore f | NewlineAfter f -> eval_ast_formula f
   | Formula f -> eval_ast_formula f
+  | Substitute (formula_to_replace, new_formula, formula, set) ->
+      let f =
+        let rec substitute_in_formula f_t_r n_f f =
+          let n_f = ast_without_loc n_f and f = ast_without_loc f in
+          if
+            f = ast_without_loc f_t_r
+            && (match set with
+               | None -> true
+               | Some (Set_decl y) -> List.exists (fun a -> a = f) y
+               | _ -> failwith "Erreur ensemble")
+            &&
+            match (ast_without_loc f_t_r, set) with
+            | Var _, Some _ -> true
+            | _, None -> true
+            | _, Some _ -> failwith "Erreur variable"
+          then
+            match set with
+            | None -> n_f
+            | Some _ -> Let (ast_without_loc f_t_r, f, n_f)
+          else
+            match f with
+            | Neg t -> Neg (substitute_in_formula f_t_r n_f t)
+            | Sqrt t -> Sqrt (substitute_in_formula f_t_r n_f t)
+            | Abs t -> Abs (substitute_in_formula f_t_r n_f t)
+            | Not t -> Not (substitute_in_formula f_t_r n_f t)
+            | Empty t -> Empty (substitute_in_formula f_t_r n_f t)
+            | Card t -> Card (substitute_in_formula f_t_r n_f t)
+            | Powerset t -> Powerset (substitute_in_formula f_t_r n_f t)
+            | Loc (t, e) -> Loc (substitute_in_formula f_t_r n_f t, e)
+            | Paren t -> Paren (substitute_in_formula f_t_r n_f t)
+            | NewlineAfter t -> NewlineAfter (substitute_in_formula f_t_r n_f t)
+            | NewlineBefore t ->
+                NewlineBefore (substitute_in_formula f_t_r n_f t)
+            | Formula t -> Formula (substitute_in_formula f_t_r n_f t)
+            | Add (t1, t2) ->
+                Add
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Sub (t1, t2) ->
+                Sub
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Mul (t1, t2) ->
+                Mul
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Div (t1, t2) ->
+                Div
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Mod (t1, t2) ->
+                Mod
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | And (t1, t2) ->
+                And
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Or (t1, t2) ->
+                Or
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Xor (t1, t2) ->
+                Xor
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Implies (t1, t2) ->
+                Implies
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Equiv (t1, t2) ->
+                Equiv
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Equal (t1, t2) ->
+                Equal
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Not_equal (t1, t2) ->
+                Not_equal
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Lesser_than (t1, t2) ->
+                Lesser_than
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Lesser_or_equal (t1, t2) ->
+                Lesser_or_equal
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Greater_than (t1, t2) ->
+                Greater_than
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Greater_or_equal (t1, t2) ->
+                Greater_or_equal
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Union (t1, t2) ->
+                Union
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Inter (t1, t2) ->
+                Inter
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Diff (t1, t2) ->
+                Diff
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Range (t1, t2) ->
+                Range
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Subset (t1, t2) ->
+                Subset
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | In (t1, t2) ->
+                In
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Exact (t1, t2) ->
+                Exact
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Atleast (t1, t2) ->
+                Atleast
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Atmost (t1, t2) ->
+                Atmost
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Affect (t1, t2) ->
+                Affect
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Exists (t1, t2) ->
+                Exists
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Forall (t1, t2) ->
+                Forall
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2 )
+            | Bigand (v, s, w, t) ->
+                Bigand (v, s, w, substitute_in_formula f_t_r n_f t)
+            | Bigor (v, s, w, t) ->
+                Bigor (v, s, w, substitute_in_formula f_t_r n_f t)
+            | For (t1, t2, t3) ->
+                For
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2,
+                    substitute_in_formula f_t_r n_f t3 )
+            | If (t1, t2, t3) ->
+                If
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2,
+                    substitute_in_formula f_t_r n_f t3 )
+            | Substitute (t1, t2, t3, t4) ->
+                Substitute
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2,
+                    substitute_in_formula f_t_r n_f t3,
+                    match t4 with
+                    | None -> None
+                    | Some x -> Some (substitute_in_formula f_t_r n_f x) )
+            | Let (t1, t2, t3) ->
+                Let
+                  ( substitute_in_formula f_t_r n_f t1,
+                    substitute_in_formula f_t_r n_f t2,
+                    substitute_in_formula f_t_r n_f t3 )
+            | e -> e
+        in
+        substitute_in_formula formula_to_replace new_formula formula
+      in
+      eval_ast_formula f
   | e ->
       raise_with_loc ast
         ("this expression is not a formula: " ^ string_of_ast e ^ "\n")
@@ -821,7 +999,7 @@ and expand_prop_with_set env name indices_optional =
          <- i ->       <--------------- acc_props ------------->
                        [time]
          [1,2]     ->  [time(1), time(2)]
-         [a,b]     ->  [time(1,a), time(1,b), time(2,a), time(2,b)]       *)
+         [a,b]     ->  [time(1,a), time(1,b), time(2,a), time(2,b)] *)
 and expand_prop_with_set' env acc_props indices =
   match indices with
   (* at this point, indices contain either Props or Sets *)

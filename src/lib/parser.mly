@@ -44,6 +44,7 @@
 %token FORALL EXISTS
 %token FOR NEWLINE
 %token QUOTE
+%token SUBSTITUTION BY
 
 (* The following lines define in which order the tokens should
  * be reduced, e.g. it tells the parser to reduce * before +.
@@ -289,6 +290,7 @@ expr:
   | f=in_parenthesis(F)
   | f=if_statement(F)
   | f=connectors(F)
+  | f=substitution(F)
   | f=generalized_connectors(F) (* are only on formulas! No need for parametrization *)
   | f=let_affect(expr,F) {f}
   | NEWLINE f=F { NewlineBefore f } %prec newlineBefore
@@ -346,7 +348,15 @@ expr_smt:
   | ATLEAST (*LPAREN*) x=expr COMMA s=expr RPAREN {Loc (Atleast (x,s),($startpos,$endpos))}
   | ATMOST (*LPAREN*)  x=expr COMMA s=expr RPAREN {Loc (Atmost (x,s),($startpos,$endpos))}
 
+%inline substitution(F):
+  // | SUBSTITUTION v=expr BY ne=expr COLON f=F END
+  //   {Loc (Substitute (v, ne, f, f), ($startpos,$endpos))}
+  | SUBSTITUTION v=expr ens=set_cond? BY ne=expr COLON f=F END 
+    {Loc (Substitute (v, ne, f, ens), ($startpos,$endpos))}
+
 %inline when_cond: WHEN x=expr { x }
+
+%public set_cond: IN ens=expr { ens }
 
 %inline prop_or_var: p=prop | p=var {p}
 

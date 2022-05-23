@@ -7,15 +7,15 @@
 
 (executable
  (name touistjs)
- (libraries re re.str touist js_of_ocaml js_of_ocaml-ppx js_of_ocaml.weak
-   yojson ppx_deriving ppx_deriving_yojson ppx_deriving_yojson.runtime)
- (js_of_ocaml
-  (flags :standard +weak.js +nat.js +dynlink.js +toplevel.js))
- (preprocess
-  (pps js_of_ocaml.ppx ppx_deriving_yojson))
+ (libraries re re.str touist) ; js_of_ocaml js_of_ocaml-ppx js_of_ocaml.weak
+                              ;yojson ppx_deriving ppx_deriving_yojson ppx_deriving_yojson.runtime)
+                              ;(js_of_ocaml
+                              ; (flags :standard +weak.js +nat.js +dynlink.js +toplevel.js))
+                              ;(preprocess
+                              ;(pps js_of_ocaml.ppx ppx_deriving_yojson))
  (link_flags :standard -linkall)
  (flags :standard -g))
 
-(alias
- (name js)
- (deps touistjs.bc.js))
+;(alias
+;(name js)
+;(deps touistjs.bc.js))

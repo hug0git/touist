@@ -2,17 +2,17 @@
     Abstract Syntaxic Tree
 *)
 
-(*  Do you think this file is wierd, with this 'module rec' thing?
-    This is because we want the type 'Ast.t' to be used in 'Set' and
-    also we want 'Set' to be inside an 'Ast.t', I had to come up with
-    this recursive (and quite confusing) module thing. I got
-    the idea from http://stackoverflow.com/questions/8552589
-    Notes:
-    (1) This is a trick that allows me to avoid repeating the type
-       definitions in sig .. end and in struct .. end (explained
-       in above link)
-    (2) I don't know why but Set.elt wouldn't be Ast.t... So
-       I tried this and now it works...
+(* Do you think this file is wierd, with this 'module rec' thing?
+   This is because we want the type 'Ast.t' to be used in 'Set' and
+   also we want 'Set' to be inside an 'Ast.t', I had to come up with
+   this recursive (and quite confusing) module thing. I got
+   the idea from http://stackoverflow.com/questions/8552589
+   Notes:
+   (1) This is a trick that allows me to avoid repeating the type
+      definitions in sig .. end and in struct .. end (explained
+      in above link)
+   (2) I don't know why but Set.elt wouldn't be Ast.t... So
+      I tried this and now it works...
 *)
 module rec Ast : sig
   type var = string * t list option
@@ -101,6 +101,7 @@ module rec Ast : sig
     | NewlineBefore of t
     | Formula of t
     | SetBuilder of t * t list * t list * t option
+    | Substitute of t * t * t * t option
 end =
   Ast
 

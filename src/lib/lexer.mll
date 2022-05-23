@@ -87,7 +87,9 @@
     "powerset(",     POWERSET;
     "exists",        EXISTS;
     "forall",        FORALL;
-    "for",        FOR;
+    "for",           FOR;
+    "subst",         SUBSTITUTION;
+    "by",            BY;
     ]
 }
 

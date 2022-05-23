@@ -29,9 +29,9 @@ let to_msg (msg : Touist.Err.msg) : msg =
   let loc = { line = l; col = c; start_abs = s; end_abs = e } in
   { level = string_of_type typ; message = msg; loc }
 
-open Js_of_ocaml
+(* open Js_of_ocaml *)
 
-let _ =
+(* let _ =
   Js.export_all
     (object%js
        method linter (txt : Js_of_ocaml.Js.js_string Js.t) : Js.js_string Js.t =
@@ -59,4 +59,4 @@ let _ =
              Latex_Error { messages = [ to_msg msgs ] }
          in
          latex_ret_to_yojson ret |> Yojson.Safe.to_string ~std:true |> Js.string
-    end)
+    end) *)
