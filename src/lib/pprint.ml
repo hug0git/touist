@@ -174,7 +174,6 @@ and string_of_ast_type ?(debug = false) (ast : Ast.t) : string =
   | NewlineBefore _ | NewlineAfter _ -> "newline"
   | Formula _ -> "quoted formula"
   | SetBuilder (_, _, _, _) -> "set builder"
-  (* TODO *)
   | Substitute (_, _, _, _, _) -> "substitute"
 
 and string_of_ast_list ?(utf8 = false) ?(show_var = fun _ -> "")

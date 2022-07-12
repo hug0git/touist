@@ -164,7 +164,6 @@ let rec latex_of_ast ?(matrix_instead_of_substack = false) ~full ast =
       ^ latex_of_commalist " \\times " sets
       ^ (match cond with Some c -> ", " ^ latex_of_ast c | _ -> "")
       ^ "]"
-  (* TODO *)
   | Substitute (v, ne, f, ens, _) -> (
       match ens with
       | None ->
