@@ -66,7 +66,7 @@
     "when",          WHEN;
     "Top",           TOP;
     "Bot",           BOTTOM;
-    "card(",          CARD;
+    "card(",         CARD;
     "mod",           MOD;
     "sqrt(",         SQRT;
     "int(",          TOINT;
@@ -90,6 +90,7 @@
     "for",           FOR;
     "subst",         SUBSTITUTION;
     "by",            BY;
+    "is",            IS;
     ]
 }
 
@@ -100,6 +101,7 @@ let special    = ['_']
 let newline    = '\r' | '\n' | "\r\n"
 let ident = (special | digit)* alpha (alpha | special | digit)*
 let var   = (special | digit)* alpha (alpha | special | digit)*
+let fun   = (special | digit)* alpha (alpha | special | digit)*
 let integer    = digit+
 let double     = digit+ '.' digit+
 
@@ -139,6 +141,7 @@ rule token = parse (* is a function (Lexing.lexbuf -> Parser.token list) *)
   | "\\\\"            {[ NEWLINE        ]}
   | '$'(var as v)'('  {[ VARTUPLE ("$" ^ v)]}
   | '$'(var as v)     {[ VAR ("$" ^ v)  ]}
+  (* | '#' (fun as f)    {[ FUN ("#" ^ f)  ]} *)
     (* This rule is going to take care of both identifiers
      * and every keyword in reserved_keywords *)
   | (ident as i)'('
@@ -161,6 +164,7 @@ rule token = parse (* is a function (Lexing.lexbuf -> Parser.token list) *)
   | "("            {[ LPAREN       ]}
   | integer as i   {[ INT          (int_of_string i) ]}
   | double as f    {[ FLOAT      (float_of_string f) ]}
+  | ident as i     {[ FTYPE i]}
   | newline        { next_line lexbuf; token lexbuf   }
   | ";;"           { comments_parse lexbuf            }
   | _ as c         { let loc = (lexbuf.lex_curr_p,lexbuf.lex_curr_p)

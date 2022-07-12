@@ -101,8 +101,14 @@ let rec string_of_ast ?(utf8 = false) ?(show_var = fun _ -> "") ?(debug = false)
       ^ of_ast_list "," sets
       ^ (match cond with Some c -> " when " ^ of_ast c | None -> "")
       ^ "]"
-  (* TODO *)
-  | Substitute _ -> ""   
+  | Substitute (v, ne, f, ens, _) -> (
+      match ens with
+      | None ->
+          "susbsitute " ^ of_ast v ^ " by " ^ of_ast ne ^ " in formula "
+          ^ of_ast f
+      | Some e ->
+          "susbsitute " ^ of_ast v ^ " by " ^ of_ast ne ^ " in " ^ of_ast e
+          ^ " in formula " ^ of_ast f)
 
 and string_of_ast_type ?(debug = false) (ast : Ast.t) : string =
   let of_ast_type ast = string_of_ast_type ~debug ast in
@@ -169,7 +175,7 @@ and string_of_ast_type ?(debug = false) (ast : Ast.t) : string =
   | Formula _ -> "quoted formula"
   | SetBuilder (_, _, _, _) -> "set builder"
   (* TODO *)
-  | Substitute (_, _, _, _) -> "substitute"
+  | Substitute (_, _, _, _, _) -> "substitute"
 
 and string_of_ast_list ?(utf8 = false) ?(show_var = fun _ -> "")
     ?(debug = false) ?(parenthesis = debug) sep el =

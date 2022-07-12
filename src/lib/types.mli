@@ -25,6 +25,7 @@ module rec Ast : sig
     | Float of float
     | Bool of bool
     | Var of var
+    (* | Fun of string * t list option *)
     | Set of AstSet.t
     | Set_decl of t list
     | Neg of t
@@ -68,6 +69,7 @@ module rec Ast : sig
     | Bigor of t list * t list * t option * t
     | Let of t * t * t
     | Affect of t * t
+    (* | Affect_fun of t * t *)
     | UnexpProp of string * t list option
         (** [UnexpProp] is a proposition that contains unexpanded variables; we
         cannot tranform [UnexpProp] into [Prop] before knowing what is the
@@ -102,7 +104,7 @@ module rec Ast : sig
     | NewlineBefore of t
     | Formula of t
     | SetBuilder of t * t list * t list * t option
-    | Substitute of t * t * t * t option
+    | Substitute of t * t * t * t option * string option
 end
 
 and AstSet : sig

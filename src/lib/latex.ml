@@ -165,7 +165,14 @@ let rec latex_of_ast ?(matrix_instead_of_substack = false) ~full ast =
       ^ (match cond with Some c -> ", " ^ latex_of_ast c | _ -> "")
       ^ "]"
   (* TODO *)
-  | Substitute _ -> ""
+  | Substitute (v, ne, f, ens, _) -> (
+      match ens with
+      | None ->
+          "\\textrm{susbsitute}(" ^ latex_of_ast v ^ "\\by\\" ^ latex_of_ast ne
+          ^ "\\in\\formula\\" ^ latex_of_ast f ^ ")"
+      | Some e ->
+          "\\textrm{susbsitute}" ^ latex_of_ast v ^ "\\by\\" ^ latex_of_ast ne
+          ^ "\\in\\" ^ latex_of_ast e ^ "\\in formula\\" ^ latex_of_ast f)
 
 and latex_of_commalist ~matrix_instead_of_substack ~full sep el =
   String.concat sep
@@ -191,6 +198,7 @@ and ast_fun (f : 'a -> Ast.t -> 'a) (acc : 'a) ast : 'a =
   | Not f
   | Bigand (_, _, _, f)
   | Bigor (_, _, _, f)
+  | Substitute (_, _, f, _, _)
   | Let (_, _, f)
   | Loc (f, _)
   | Paren f
@@ -225,8 +233,6 @@ and ast_fun (f : 'a -> Ast.t -> 'a) (acc : 'a) ast : 'a =
   | Mod _ | Union _ | Inter _ | Diff _ | Range _ | Subset _ | Powerset _ | In _
   | Empty _ ->
       acc
-    (* TODO *)
-  | Substitute _ -> acc
 
 and contains_newline ast =
   ast

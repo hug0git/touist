@@ -96,6 +96,7 @@ let check_nb_vars_same_as_nb_sets (ast : Ast.t) (vars : Ast.t list)
           Some loc )
 
 let extenv = ref (Hashtbl.create 0)
+(* let funenv = ref (Hashtbl.create 0) *)
 
 (* [check_only] allows to only 'check the types'. It prevents the bigand,
     bigor, exact, atmost, atleast and range to expand completely(as it
@@ -111,6 +112,7 @@ let rec eval ?smt:(smt_mode = false) ?(onlychecktypes = false) ast : Ast.t =
   check_only := onlychecktypes;
   smt := smt_mode;
   extenv := Hashtbl.create 50;
+  (* funenv := Hashtbl.create 50; *)
   (* extenv must be re-init between two calls to [eval] *)
   eval_touist_code [] ast
 
@@ -123,6 +125,15 @@ and eval_touist_code (env : env) ast : Ast.t =
           (eval_ast env y, var_loc);
         affect_vars xs
     | x :: xs -> x :: affect_vars xs
+    (* in
+       let rec affect_fun = function
+         | [] -> []
+         | Loc (Affect_fun (Loc (Fun (f, i), var_loc), y), _) :: xs ->
+             Hashtbl.replace !funenv
+               (expand_var_name env (f, i))
+               (eval_ast env y, var_loc);
+             affect_fun xs
+         | x :: xs -> x :: affect_fun xs *)
   in
   let rec process_formulas = function
     | [] -> raise_with_loc ast "no formulas"
@@ -751,25 +762,34 @@ and eval_ast_formula (env : env) (ast : Ast.t) : Ast.t =
       | _, content' -> raise_type_error ast content content' " 'prop-set'")
   | NewlineBefore f | NewlineAfter f -> eval_ast_formula f
   | Formula f -> eval_ast_formula f
-  | Substitute (formula_to_replace, new_formula, formula, set) ->
+  | Substitute (formula_to_replace, new_formula, formula, set, t) ->
       let f =
         let rec substitute_in_formula f_t_r n_f f =
           let n_f = ast_without_loc n_f and f = ast_without_loc f in
           if
-            f = ast_without_loc f_t_r
-            && (match set with
-               | None -> true
-               | Some (Set_decl y) -> List.exists (fun a -> a = f) y
-               | _ -> failwith "Erreur ensemble")
+            (match set with
+            | None -> f = ast_without_loc f_t_r
+            | Some s ->
+                let y =
+                  match eval_ast (ast_without_loc s) with
+                  | Set s -> AstSet.elements s
+                  | e ->
+                      raise_with_loc ast
+                        ("this expression is not a set: " ^ string_of_ast e
+                       ^ "\n")
+                in
+                List.exists (fun a -> ast_without_loc a = f) y)
             &&
             match (ast_without_loc f_t_r, set) with
-            | Var _, Some _ -> true
-            | _, None -> true
-            | _, Some _ -> failwith "Erreur variable"
-          then
-            match set with
-            | None -> n_f
-            | Some _ -> Let (ast_without_loc f_t_r, f, n_f)
+            | Var _, Some _ | _, None -> true
+            | _ ->
+                raise_with_loc ast
+                  ("this expression is not a formula: "
+                  ^ string_of_ast
+                      (Substitute
+                         (formula_to_replace, new_formula, formula, set, t))
+                  ^ "\n")
+          then match set with None -> n_f | Some _ -> Let (f_t_r, f, n_f)
           else
             match f with
             | Neg t -> Neg (substitute_in_formula f_t_r n_f t)
@@ -911,14 +931,15 @@ and eval_ast_formula (env : env) (ast : Ast.t) : Ast.t =
                   ( substitute_in_formula f_t_r n_f t1,
                     substitute_in_formula f_t_r n_f t2,
                     substitute_in_formula f_t_r n_f t3 )
-            | Substitute (t1, t2, t3, t4) ->
+            | Substitute (t1, t2, t3, t4, t5) ->
                 Substitute
                   ( substitute_in_formula f_t_r n_f t1,
                     substitute_in_formula f_t_r n_f t2,
                     substitute_in_formula f_t_r n_f t3,
-                    match t4 with
+                    (match t4 with
                     | None -> None
-                    | Some x -> Some (substitute_in_formula f_t_r n_f x) )
+                    | Some x -> Some (substitute_in_formula f_t_r n_f x)),
+                    t5 )
             | Let (t1, t2, t3) ->
                 Let
                   ( substitute_in_formula f_t_r n_f t1,

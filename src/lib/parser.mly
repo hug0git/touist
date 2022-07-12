@@ -23,6 +23,7 @@
 %token <string> TERM
 %token <string> TUPLE
 %token <string> VARTUPLE
+%token <string> FTYPE
 %token ADD SUB MUL DIV MOD SQRT TOINT TOFLOAT ABS
 %token AND OR XOR IMPLIES EQUIV NOT
 %token EQUAL NOTEQUAL LE LT GE GT
@@ -44,7 +45,7 @@
 %token FORALL EXISTS
 %token FOR NEWLINE
 %token QUOTE
-%token SUBSTITUTION BY
+%token SUBSTITUTION BY IS
 
 (* The following lines define in which order the tokens should
  * be reduced, e.g. it tells the parser to reduce * before +.
@@ -180,11 +181,16 @@ var:
   | v=VARTUPLE (*LPAREN*) l=comma_list(indices) RPAREN (* tuple_variable *)
     {Loc (Var (v,Some l),($startpos,$endpos))}
 
+// fun:
+//   | f=FUN {Loc (Fun (f,None),($startpos,$endpos))}
+
 (* a global variable is a variable used in the 'data' block
   for defining sets and constants; it can be of the form of a
   tuple_variable, i.e. with prefix+indices: '$i(1,a,d)'.
   The indices can be either expression or term *)
 %inline global_affect: v=var AFFECT e=expr {Loc (Affect (v,e),($startpos,$endpos))}
+
+// %inline function_affect: v=fun AFFECT e=expr {Loc Affect_fun (v,e),($startpos,$endpos)} 
 
 %inline if_statement(T): IF cond=expr THEN v1=T ELSE v2=T END {Loc (If (cond,v1,v2),($startpos,$endpos))}
 
@@ -349,14 +355,16 @@ expr_smt:
   | ATMOST (*LPAREN*)  x=expr COMMA s=expr RPAREN {Loc (Atmost (x,s),($startpos,$endpos))}
 
 %inline substitution(F):
-  // | SUBSTITUTION v=expr BY ne=expr COLON f=F END
-  //   {Loc (Substitute (v, ne, f, f), ($startpos,$endpos))}
-  | SUBSTITUTION v=expr ens=set_cond? BY ne=expr COLON f=F END 
-    {Loc (Substitute (v, ne, f, ens), ($startpos,$endpos))}
+  | SUBSTITUTION v=expr BY ne=expr COLON f=F END 
+    {Loc (Substitute (v, ne, f, None, None), ($startpos,$endpos))}
+  | SUBSTITUTION v=expr IN ens=expr BY ne=expr COLON f=F END 
+    {Loc (Substitute (v, ne, f, Some ens, None), ($startpos,$endpos))}
+  // | SUBSTITUTION v=expr IS tps=formula_type BY ne=expr COLON f=F END
+  //   {Loc (Substitute (v, ne, f, None, Some tps), ($startpos,$endpos))}
 
 %inline when_cond: WHEN x=expr { x }
 
-%public set_cond: IN ens=expr { ens }
+%inline formula_type: x=FTYPE { x }
 
 %inline prop_or_var: p=prop | p=var {p}
 

@@ -1,8 +1,17 @@
-$y = [a, b, c]
-subst $x in [a, b, c] by $x or e:
-    a or m and d
+subst $x in [a] by e:
+    a or b
 end
-or
+
+subst $x in [a, b, c] by $x(0):
+    a or b or c or d
+end
+
 subst a by b:
     a or c
+end
+
+$e = [a, b, c]
+
+subst $x in $e by a:
+    a or b or d or c
 end
